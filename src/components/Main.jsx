@@ -1,7 +1,6 @@
-import React from "react";
+import PropTypes from "prop-types";
 
-const Main = (props) => {
-  const { nasData } = props;
+const Main = ({ nasData }) => {
   return (
     <div className="imgContainer">
       <img
@@ -11,6 +10,20 @@ const Main = (props) => {
       />
     </div>
   );
+};
+
+Main.propTypes = {
+  nasData: PropTypes.shape({
+    hdurl: PropTypes.string,
+    title: PropTypes.string,
+  }),
+};
+
+Main.defaultProps = {
+  nasData: {
+    hdurl: "",
+    title: "No title available",
+  },
 };
 
 export default Main;

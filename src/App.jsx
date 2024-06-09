@@ -5,7 +5,10 @@ import SideBar from "./components/SideBar";
 
 function App() {
   const [showModal, setShowModal] = useState(false);
-  const [nasData, setNasData] = useState();
+  const [nasData, setNasData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const handleToggleModal = () => {
     setShowModal(!showModal);
   };
@@ -18,22 +21,25 @@ function App() {
       if (localStorage.getItem(localKey)) {
         const localData = JSON.parse(localStorage.getItem(localKey));
         setNasData(localData);
+        setLoading(false);
         return;
       }
       localStorage.clear();
 
       const NASA_API_KEY = import.meta.env.VITE_NASA_API_KEY;
-      const url =
-        "https://api.nasa.gov/planetary/apod" + `?api_key=${NASA_API_KEY}`;
+      const url = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}`;
       try {
-        console.log("url\n", url);
         const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error("Failed to fetch data from NASA API");
+        }
         const data = await res.json();
         localStorage.setItem(localKey, JSON.stringify(data));
         setNasData(data);
-        console.log("DATA\n", data);
       } catch (error) {
-        console.log(error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -41,18 +47,24 @@ function App() {
 
   return (
     <>
-      {nasData ? (
-        <Main nasData={nasData} />
-      ) : (
+      {loading && (
         <div className="loadingState">
-          <i className="fa-solid fa-gear"></i>
+          <i className="fa-solid fa-gear fa-spin"></i> Loading...
         </div>
       )}
-      {showModal && (
-        <SideBar nasData={nasData} handleToggleModal={handleToggleModal} />
+      {error && (
+        <div className="errorState">
+          <p>Error: {error}</p>
+        </div>
       )}
-      {nasData && (
-        <Footer nasData={nasData} handleToggleModal={handleToggleModal} />
+      {nasData && !loading && (
+        <>
+          <Main nasData={nasData} />
+          {showModal && (
+            <SideBar nasData={nasData} handleToggleModal={handleToggleModal} />
+          )}
+          <Footer nasData={nasData} handleToggleModal={handleToggleModal} />
+        </>
       )}
     </>
   );
